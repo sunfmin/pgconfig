@@ -1,0 +1,10 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:11
+    environment:
+      - "POSTGRES_USER=pgconfig"
+      - "POSTGRES_PASSWORD=123"
+      - "POSTGRES_DB=pgconfig_test"
+    ports:
+      - "5001:5432"
