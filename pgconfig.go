@@ -32,6 +32,8 @@ func (im *impl) lookupEnv(key string) (value string, found bool) {
 }
 
 func (im *impl) getFromDbCache(key string) (value string, found bool) {
+	// log.Printf("getFromDbCache %+v", im.dbvalues[0])
+
 	for _, v := range im.dbvalues {
 		if v.LookupKey == key {
 			return v.Value, true
@@ -68,13 +70,11 @@ func New(prefix string, pgOptions *pg.Options) PgConfig {
 	log.Printf("Listen postgres channel at %s\n", im.chname)
 	im.ln = im.db.Listen(im.chname)
 
-	envconfig.LookupEnv = im.lookupEnv
-
 	return im
 }
 
 func (im *impl) OnChange(v interface{}, onchange OnChangerFunc) {
-	im.reload(&v)
+	im.reload(v)
 	onchange(v)
 	ch := im.ln.Channel()
 	go func() {
@@ -90,11 +90,13 @@ func (im *impl) OnChange(v interface{}, onchange OnChangerFunc) {
 
 func (im *impl) reload(v interface{}) {
 	err := im.db.Model(&im.dbvalues).Select()
+	// log.Printf("values %+v", im.dbvalues[0])
 	if err != nil {
 		log.Println("Select()", err)
 		return
 	}
 
+	envconfig.LookupEnv = im.lookupEnv
 	err = envconfig.Process(im.prefix, v)
 	if err != nil {
 		log.Println("envconfig.Process", err)

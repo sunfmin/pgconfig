@@ -33,23 +33,28 @@ func TestReload(t *testing.T) {
 		panic(err)
 	}
 
+	runm(
+		db,
+		`INSERT INTO app_configs (lookup_key, value) VALUES ('MYAPP_USER', 'Felix1')`,
+	)
+
 	pgc.OnChange(&Specification{}, func(v interface{}) {
 		myval = v.(*Specification)
 	})
 
-	if myval.User != "" {
-		t.Errorf("user should have no value before update")
+	if myval.User != "Felix1" {
+		t.Errorf("user should load initial value")
 	}
 
 	runm(
 		db,
-		`INSERT INTO app_configs (lookup_key, value) VALUES ('MYAPP_USER', 'Felix')`,
+		`UPDATE app_configs SET value = 'Felix2' WHERE lookup_key = 'MYAPP_USER'`,
 		`NOTIFY app_configs_myapp`,
 	)
 
 	time.Sleep(100 * time.Millisecond)
 
-	if myval.User != "Felix" {
+	if myval.User != "Felix2" {
 		t.Errorf("wrong value loaded from db %+v", myval)
 	}
 }
