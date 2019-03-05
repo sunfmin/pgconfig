@@ -1,0 +1,4 @@
+export MYAPP_DB_USER="pgconfig"
+export MYAPP_DB_PASSWORD="123"
+export MYAPP_DB_DATABASE="pgconfig_test"
+export MYAPP_DB_ADDR="localhost:5001"

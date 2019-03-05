@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-pg/pg"
 	"github.com/sunfmin/pgconfig"
+	"github.com/sunfmin/pgconfig/envconfig"
 )
 
 type Specification struct {
@@ -25,14 +26,19 @@ func (d dbLogger) AfterQuery(q *pg.QueryEvent) {
 func main() {
 	var myval *Specification
 
-	var pgopts = &pg.Options{
-		User:     "pgconfig",
-		Password: "123",
-		Database: "pgconfig_test",
-		Addr:     "localhost:5001",
+	var opts = &pg.Options{}
+	err := envconfig.Process("myapp_db", opts)
+	if err != nil {
+		panic(err)
 	}
 
-	db := pg.Connect(pgopts)
+	var db = pg.Connect(&pg.Options{
+		Addr:     opts.Addr,
+		User:     opts.User,
+		Password: opts.Password,
+		Database: opts.Database,
+	})
+
 	db.AddQueryHook(dbLogger{})
 
 	pgc := pgconfig.New("myapp", db)
