@@ -54,12 +54,11 @@ type impl struct {
 	ln        *pg.Listener
 }
 
-func New(prefix string, pgOptions *pg.Options) PgConfig {
+func New(prefix string, db *pg.DB) PgConfig {
 	im := &impl{
-		prefix:    prefix,
-		pgOptions: pgOptions,
-		db:        pg.Connect(pgOptions),
-		chname:    fmt.Sprintf("app_configs_%s", prefix),
+		prefix: prefix,
+		db:     db,
+		chname: fmt.Sprintf("app_configs_%s", prefix),
 	}
 
 	_, err := im.db.Exec(createSQL)

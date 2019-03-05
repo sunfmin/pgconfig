@@ -1,6 +1,7 @@
 package pgconfig_test
 
 import (
+	"log"
 	"testing"
 	"time"
 
@@ -14,6 +15,20 @@ type Specification struct {
 	User  string
 }
 
+type dbLogger struct {
+	start time.Time
+}
+
+func (d dbLogger) BeforeQuery(q *pg.QueryEvent) {
+
+}
+
+func (d dbLogger) AfterQuery(q *pg.QueryEvent) {
+	sql, _ := q.FormattedQuery()
+
+	log.Printf("%s\n", sql)
+}
+
 func TestReload(t *testing.T) {
 	var myval *Specification
 
@@ -25,9 +40,9 @@ func TestReload(t *testing.T) {
 	}
 
 	var db = pg.Connect(pgopts)
+	db.AddQueryHook(dbLogger{})
 
-	pgc := pgconfig.New("myapp", pgopts)
-
+	pgc := pgconfig.New("myapp", db)
 	_, err := db.Exec("TRUNCATE TABLE app_configs")
 	if err != nil {
 		panic(err)

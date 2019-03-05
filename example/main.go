@@ -14,6 +14,14 @@ type Specification struct {
 	User  string
 }
 
+type dbLogger struct{}
+
+func (d dbLogger) BeforeQuery(q *pg.QueryEvent) {}
+
+func (d dbLogger) AfterQuery(q *pg.QueryEvent) {
+	fmt.Println(q.FormattedQuery())
+}
+
 func main() {
 	var myval *Specification
 
@@ -24,7 +32,10 @@ func main() {
 		Addr:     "localhost:5001",
 	}
 
-	pgc := pgconfig.New("myapp", pgopts)
+	db := pg.Connect(pgopts)
+	db.AddQueryHook(dbLogger{})
+
+	pgc := pgconfig.New("myapp", db)
 
 	pgc.OnChange(&Specification{}, func(v interface{}) {
 		myval = v.(*Specification)
